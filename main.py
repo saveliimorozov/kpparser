@@ -3,16 +3,20 @@ import time
 import requests as req
 from bs4 import BeautifulSoup as bs
 from fake_useragent import UserAgent
+import pandas as pd
 
-url = 'https://www.kinopoisk.ru/lists/movies/top-250-2020/'
+url = 'https://www.kinopoisk.ru/lists/movies/top-250-2020/?page=1'
 
 
 def getSitePageInText(url: str):
-    urlReq = req.get(url, headers={'User-Agent': UserAgent().chrome})
+
+    urlReq = req.get(url, headers={'User-Agent': UserAgent().safari})
+    time.sleep(1)
     print(urlReq)
-    time.sleep(3)
+    time.sleep(4)
 
     soupUrlReq = bs(urlReq.text, 'lxml')
+    time.sleep(1)
     print(soupUrlReq)
 
     return soupUrlReq
@@ -52,7 +56,19 @@ def getMovieMainInfo(singleMovieText):
 
     return singleMovieDict
 
+def dataToTable(singleMovieDict:dict):
+    readyTable = pd.DataFrame(columns=[key for key in singleMovieDict])
+    # readyTable = readyTable.append(singleMovieDict, ignore_index=True )
+    readyTable.loc[len(readyTable.index)] = list(singleMovieDict.values())
+    readyTable.to_csv(r"C:\Users\morozsa\PycharmProjects\kpparser\ReadyTable.csv", sep='\t')
+
+    return readyTable
+
+
 
 if __name__ == '__main__':
     moviesList = getMoviesList(getSitePageInText(url))
-    print(getMovieMainInfo(moviesList[0]))
+    movieDict = getMovieMainInfo(moviesList[0])
+    print(movieDict)
+    with pd.option_context("display.max_rows", None, "display.max_columns", None):
+        print(dataToTable(movieDict))
