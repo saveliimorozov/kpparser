@@ -23,11 +23,8 @@ def getSitePageInText(url: str):
 
 
 def getMoviesList(soupUrlReq):
-    # movieMainInfo = soupUrlReq.find('div', class_="styles_root__ti07r").find(
-    #     'a', class_="base-movie-main-info_link__YwtP1")
     movieMainList = soupUrlReq.findAll('div', class_="styles_root__ti07r")
     time.sleep(4)
-    print(len(movieMainList))
     return movieMainList
 
 
@@ -36,7 +33,7 @@ def getMovieMainInfo(singleMovieText):
     movieMainInfo = singleMovieText.find(
         lambda tag: tag.name == 'a' and tag.get('class') == ['base-movie-main-info_link__YwtP1'])
 
-    print(movieMainInfo)
+
 
     if movieMainInfo:
         try:
@@ -54,7 +51,7 @@ def getMovieMainInfo(singleMovieText):
             else:
                 movieNameOrig = movieNameRu
                 movieYearandDuration = movieMainInfo.find(
-                    'span', class_="desktop-list-main-info_secondaryText__M_aus").contents[1]
+                    'span', class_="desktop-list-main-info_secondaryText__M_aus").contents[0]
 
 
             movieCountryTypeDirector = movieMainInfo.find(
