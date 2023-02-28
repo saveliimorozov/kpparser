@@ -3,7 +3,6 @@ import requestConfig as rc
 
 import requests as req
 from bs4 import BeautifulSoup as bs
-from fake_useragent import UserAgent
 import pandas as pd
 import random
 
@@ -11,12 +10,7 @@ url = 'https://www.kinopoisk.ru/lists/movies/top-250-2020/?page='
 
 
 def getSitePageInText(url: str, params: dict):
-    # headers = ['UserAgent().safari',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
 
-    #            'UserAgent().opera']
-    # urlReq = req.get(url, headers={
-    #         'User-Agent': headers[curPage % 3 - 1]})
     urlReq = req.get(url,
                      params=params,
                      cookies=rc.cookies,
@@ -72,7 +66,6 @@ def getMovieMainInfo(singleMovieText):
                                'Additional information': movieYearandDuration,
                                'Link': movieLink
                                }
-            print('Created singleDict')
         except Exception as err:
             print(err)
             print('Error single dict')
@@ -95,7 +88,7 @@ def dataToTable(dictsList: list[dict]):
 
 
 def dataToFile(dfDist: dict):
-    path = 'Films.xlsx'
+    path = 'Films2.xlsx'
     try:
         readyTable = pd.concat(list(dfDict.values()), ignore_index=True)
         readyTable.to_excel(path)
@@ -123,15 +116,13 @@ if __name__ == '__main__':
             moviesList = getMoviesList(getSitePageInText(url + str(curPage), params))
             print('First 3 movies from movieList:')
             print(moviesList[:3])
-            print('\nPassed 1st func\n')
+
             movieDicts = [getMovieMainInfo(movie) for movie in moviesList]
             print('First 3 moviesDICT from movieDICTList:')
             print(movieDicts[:3])
             print('\nCreated list of dicts\n')
 
             df = dataToTable(movieDicts)
-            print('Current df:')
-            print(df)
 
             dfDict[curPage] = df
             print(f'{curPage} page(s) - done\n')
