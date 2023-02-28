@@ -1,4 +1,5 @@
 import time
+import requestConfig as rc
 
 import requests as req
 from bs4 import BeautifulSoup as bs
@@ -9,13 +10,18 @@ import random
 url = 'https://www.kinopoisk.ru/lists/movies/top-250-2020/?page='
 
 
-def getSitePageInText(url: str, curPage:int):
-    headers = ['UserAgent().safari',
-               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-               'UserAgent().opera']
-    urlReq = req.get(url, headers={
-            'User-Agent': headers[curPage % 3 - 1]})
-    print(f'Cur page = {curPage}, curHeader = {curPage % 3 - 1}')
+def getSitePageInText(url: str, params: dict):
+    # headers = ['UserAgent().safari',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+
+    #            'UserAgent().opera']
+    # urlReq = req.get(url, headers={
+    #         'User-Agent': headers[curPage % 3 - 1]})
+    urlReq = req.get(url,
+                     params=params,
+                     cookies=rc.cookies,
+                     headers=rc.headers)
+    print(f'Cur page = {params["page"]}')
     # urlReq = req.get(url, headers={'User-Agent': UserAgent().safari})
     time.sleep(1)
     print(urlReq)
@@ -83,7 +89,8 @@ def dataToTable(dictsList: list[dict]):
             tempDF = pd.DataFrame([dictsList[i].values()], columns=list(dictsList[i].keys()))
             readyTable = pd.concat([readyTable, tempDF], ignore_index=True)
     except Exception as err:
-        return f'Error create df...\n{err}'
+        readyTable = pd.DataFrame([f'Error create df...{err}'])
+        return readyTable
     return readyTable
 
 
@@ -105,24 +112,31 @@ if __name__ == '__main__':
         exit()
     else:
         curPage = 1
+        params = {}
         dfDict = {}
         while curPage != pagesNum + 1:
-            ranTime = random.randint(180, 200)
-            print(f'Sleep for {ranTime} sec')
-            time.sleep(ranTime)
+            randTime = random.randint(3, 10)
+            print(f'Sleep for {randTime} sec')
+            time.sleep(randTime)
 
-            moviesList = getMoviesList(getSitePageInText(url + str(curPage), curPage))
+            params['page'] = str(curPage)
+            moviesList = getMoviesList(getSitePageInText(url + str(curPage), params))
+            print('First 3 movies from movieList:')
+            print(moviesList[:3])
             print('\nPassed 1st func\n')
             movieDicts = [getMovieMainInfo(movie) for movie in moviesList]
+            print('First 3 moviesDICT from movieDICTList:')
+            print(movieDicts[:3])
             print('\nCreated list of dicts\n')
 
             df = dataToTable(movieDicts)
-
+            print('Current df:')
+            print(df)
 
             dfDict[curPage] = df
             print(f'{curPage} page(s) - done\n')
             curPage += 1
-            ranTime = random.randint(180, 200)
-            print(f'Sleep for {ranTime} sec')
-            time.sleep(ranTime)
+            # ranTime = random.randint(180, 200)
+            # print(f'Sleep for {ranTime} sec')
+            # time.sleep(ranTime)
         print(dataToFile(dfDict))
